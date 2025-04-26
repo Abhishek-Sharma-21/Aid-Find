@@ -10,6 +10,9 @@ const app = express();
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 
 app.use(express.json());
+app.get("/", (req, res) => {
+  res.send("Welcome to the api");
+});
 app.use("/api", donorRegister);
 app.use("/api", adminsignUp);
 
