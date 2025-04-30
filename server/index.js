@@ -18,7 +18,8 @@ app.use("/api", adminsignUp);
 
 const port = process.env.PORT || 3000;
 
-app.listen(port, () => {
-  connectDb();
-  console.log("Server is running on http://localhost:3000");
+connectDb().then(() => {
+  app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+  });
 });
