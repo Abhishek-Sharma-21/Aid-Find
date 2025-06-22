@@ -2,9 +2,10 @@ import express from "express";
 import dotenv from "dotenv";
 dotenv.config();
 import cors from "cors";
-import donorRegister from "./routes/donor-register.js";
 import { connectDb } from "./database/db.js";
-import adminsignUp from "./routes/admin.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import authRoutes from "./routes/auth.routes.js";
+import requestRoutes from "./routes/request.routes.js";
 
 const app = express();
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
@@ -13,8 +14,9 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Welcome to the api");
 });
-app.use("/api", donorRegister);
-app.use("/api", adminsignUp);
+app.use("/api/admin", adminRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/requests", requestRoutes);
 
 const port = process.env.PORT || 3000;
 

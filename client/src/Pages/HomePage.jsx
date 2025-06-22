@@ -21,7 +21,7 @@ export default function Home() {
           </button>
         </Link>
 
-        <Link to="/register">
+        <Link to="/user-register">
           <button className="flex cursor-pointer items-center justify-center gap-2 bg-[#9fe7ff] text-black px-6 py-3 rounded-lg text-sm hover:bg-[#80c9df] transition ease-in-out duration-300 transform hover:scale-105">
             <UserPlus className="h-4 w-4" />
             Register as Donor

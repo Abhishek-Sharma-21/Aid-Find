@@ -16,7 +16,7 @@ const AdminLogin = () => {
 
     // Handle login logic here
     try {
-      const response = await fetch("http://localhost:3000/api/admin/login", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -27,7 +27,7 @@ const AdminLogin = () => {
       const result = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", result.token);
+        localStorage.setItem("adminToken", result.token);
         navigate("/admin-dashboard"); // Redirect to admin dashboard
       } else {
         setError(result.error || "Login failed");
@@ -75,7 +75,7 @@ const AdminLogin = () => {
           </button>
         </form>
         <div className="mt-4 text-center text-sm text-gray-600">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <Link
             to="/admin/signup"
             className="text-indigo-600 hover:underline font-medium"

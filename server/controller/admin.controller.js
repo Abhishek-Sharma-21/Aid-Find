@@ -1,9 +1,12 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Admin from "../models/admin.model.js";
-import donorFindModel from "../models/donor-find.model.js";
+import User from "../models/user.model.js";
+import AidRequest from "../models/aid-request.model.js";
 
-export const adminSginup = async (req, res) => {
+const JWT_SECRET = process.env.JWT_SECRET || "changeme";
+
+export const adminSignup = async (req, res) => {
   const { username, password } = req.body;
 
   // Basic validation
@@ -31,8 +34,8 @@ export const adminSginup = async (req, res) => {
 
     // Create JWT token
     const token = jwt.sign(
-      { id: newUser._id, username: newUser.username },
-      process.env.JWT_SECRET,
+      { id: newUser._id, username: newUser.username, role: "Admin" },
+      JWT_SECRET,
       {
         expiresIn: "7d",
       }
@@ -41,7 +44,7 @@ export const adminSginup = async (req, res) => {
     res.status(201).json({
       message: "User registered successfully.",
       token,
-      user: { id: newUser._id, username: newUser.username, token },
+      user: { id: newUser._id, username: newUser.username },
     });
   } catch (error) {
     console.error("Signup error:", error);
@@ -74,8 +77,8 @@ export const adminLogin = async (req, res) => {
 
     // Create JWT token
     const token = jwt.sign(
-      { id: user._id, username: user.username },
-      process.env.JWT_SECRET,
+      { id: user._id, username: user.username, role: "Admin" },
+      JWT_SECRET,
       {
         expiresIn: "7d",
       }
@@ -84,7 +87,7 @@ export const adminLogin = async (req, res) => {
     res.status(200).json({
       message: "Login successful.",
       token,
-      user: { id: user._id, username: user.username, token },
+      user: { id: user._id, username: user.username },
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -92,20 +95,49 @@ export const adminLogin = async (req, res) => {
   }
 };
 
-export const deleteDonor = async (req, res) => {
-  const { donorId } = req.params;
-  console.log(donorId);
-
+// Get all users
+export const getAllUsers = async (req, res) => {
   try {
-    const deletedDonor = await donorFindModel.findByIdAndDelete(donorId);
+    const users = await User.find({ role: { $ne: 'Admin' } }).select("-password"); // Exclude admins and passwords
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching users", error });
+  }
+};
 
-    if (!deletedDonor) {
-      return res.status(404).json({ error: "Donor not found." });
+// Get all aid requests
+export const getAllRequests = async (req, res) => {
+  try {
+    const requests = await AidRequest.find({})
+      .populate("requestedBy", "name email")
+      .populate("donatedBy", "name email");
+    res.json(requests);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching requests", error });
+  }
+};
+
+// Delete a user
+export const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Optional: Add more logic, e.g., don't allow deleting admins
+    if (user.role === 'Admin') {
+      return res.status(403).json({ message: "Cannot delete an admin account." });
     }
 
-    res.status(200).json({ message: "Donor deleted successfully." });
+    await User.findByIdAndDelete(userId);
+    // Optional: also delete associated requests
+    await AidRequest.deleteMany({ requestedBy: userId });
+
+    res.json({ message: "User and their requests deleted successfully" });
   } catch (error) {
-    console.error("Error deleting donor:", error);
-    res.status(500).json({ error: "Server error while deleting donor." });
+    res.status(500).json({ message: "Error deleting user", error });
   }
 };
