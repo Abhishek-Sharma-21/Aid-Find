@@ -10,6 +10,9 @@ const RequestAidForm = () => {
     aidType: "",
     details: "",
     location: "",
+    hospitalName: "",
+    patientName: "",
+    doctorName: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { token } = useAuth();
@@ -92,6 +95,52 @@ const RequestAidForm = () => {
               onChange={handleChange}
               required
               placeholder="e.g., Downtown, Springfield"
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ffb441]"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="hospitalName" className="block text-sm font-medium text-gray-700 mb-1">
+                Hospital Name
+              </label>
+              <input
+                id="hospitalName"
+                name="hospitalName"
+                value={formData.hospitalName}
+                onChange={handleChange}
+                required
+                placeholder="e.g., City General Hospital"
+                className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ffb441]"
+              />
+            </div>
+            <div>
+              <label htmlFor="patientName" className="block text-sm font-medium text-gray-700 mb-1">
+                Patient Name
+              </label>
+              <input
+                id="patientName"
+                name="patientName"
+                value={formData.patientName}
+                onChange={handleChange}
+                required
+                placeholder="e.g., John Doe"
+                className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ffb441]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="doctorName" className="block text-sm font-medium text-gray-700 mb-1">
+              Attending Doctor's Name
+            </label>
+            <input
+              id="doctorName"
+              name="doctorName"
+              value={formData.doctorName}
+              onChange={handleChange}
+              required
+              placeholder="e.g., Dr. Smith"
               className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ffb441]"
             />
           </div>

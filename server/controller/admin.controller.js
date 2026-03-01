@@ -98,7 +98,7 @@ export const adminLogin = async (req, res) => {
 // Get all users
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({ role: { $ne: 'Admin' } }).select("-password"); // Exclude admins and passwords
+    const users = await User.find({ role: { $ne: 'Admin' } }).select("-password").lean(); // Exclude admins and passwords
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: "Error fetching users", error });
@@ -110,7 +110,8 @@ export const getAllRequests = async (req, res) => {
   try {
     const requests = await AidRequest.find({})
       .populate("requestedBy", "name email")
-      .populate("donatedBy", "name email");
+      .populate("donatedBy", "name email")
+      .lean();
     res.json(requests);
   } catch (error) {
     res.status(500).json({ message: "Error fetching requests", error });

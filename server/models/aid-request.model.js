@@ -23,6 +23,28 @@ const aidRequestSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  hospitalName: {
+    type: String,
+    required: true,
+  },
+  patientName: {
+    type: String,
+    required: true,
+  },
+  doctorName: {
+    type: String,
+    required: true,
+  },
+  flags: {
+    type: Number,
+    default: 0,
+  },
+  reportedBy: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
   status: {
     type: String,
     enum: ["Pending", "In Progress", "Fulfilled", "Cancelled"],
@@ -35,4 +57,12 @@ const aidRequestSchema = new mongoose.Schema({
 });
 
 const AidRequest = mongoose.model("AidRequest", aidRequestSchema);
+
+// Add indexes for optimized querying
+aidRequestSchema.index({ requestedBy: 1 });
+aidRequestSchema.index({ donatedBy: 1 });
+aidRequestSchema.index({ aidType: 1 });
+aidRequestSchema.index({ status: 1 });
+aidRequestSchema.index({ createdAt: -1 });
+
 export default AidRequest; 

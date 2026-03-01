@@ -1,5 +1,6 @@
 import { useEffect, useState, useContext } from "react";
-import { MessageCircle, User, MapPin } from "lucide-react";
+import { MessageCircle, User, MapPin, Flag, Building2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import toast from "react-hot-toast";
 
@@ -14,6 +15,7 @@ const FindPage = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [dateRange, setDateRange] = useState("all");
   const { user, token } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -40,6 +42,11 @@ const FindPage = () => {
   const handleOfferHelp = async (requestId) => {
     if (!token) {
       toast.error("You must be logged in to offer help.");
+      navigate("/login");
+      return;
+    }
+    if (user?.role !== "Donor") {
+      toast.error("Only Donors can offer help. Please log in as a Donor.");
       return;
     }
 
@@ -64,6 +71,37 @@ const FindPage = () => {
       } else {
         const err = await response.json();
         toast.error(err.message || "Failed to offer help.", { id: toastId });
+      }
+    } catch (err) {
+      toast.error("Network error: " + err.message, { id: toastId });
+    }
+  };
+
+  const handleReport = async (requestId) => {
+    if (!token) {
+      toast.error("You must be logged in to report a request.");
+      navigate("/login");
+      return;
+    }
+
+    const toastId = toast.loading("Reporting request...");
+
+    try {
+      const response = await fetch(`${apiUrl}/api/requests/${requestId}/report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        toast.success("Request flagged.", { id: toastId });
+        // Optionally fetch requests again or rely on the backend filtering
+        fetchRequests();
+      } else {
+        const err = await response.json();
+        toast.error(err.error || err.message || "Failed to flag request.", { id: toastId });
       }
     } catch (err) {
       toast.error("Network error: " + err.message, { id: toastId });
@@ -195,20 +233,42 @@ const FindPage = () => {
                     <MapPin className="w-4 h-4 mr-2 text-gray-600" />
                     {request.location}
                   </p>
+                  
+                  {/* New Authenticity Fields */}
+                  {(request.hospitalName || request.patientName || request.doctorName) && (
+                    <div className="mt-3 p-3 bg-blue-50 bg-opacity-50 border border-blue-100 rounded-lg text-sm">
+                      <p className="text-blue-800 font-medium flex items-center mb-1">
+                        <Building2 className="w-4 h-4 mr-2" />
+                        Medical Details
+                      </p>
+                      <ul className="text-gray-700 space-y-1 ml-6 list-disc">
+                        {request.hospitalName && <li><strong>Hospital:</strong> {request.hospitalName}</li>}
+                        {request.patientName && <li><strong>Patient:</strong> {request.patientName}</li>}
+                        {request.doctorName && <li><strong>Doctor:</strong> {request.doctorName}</li>}
+                      </ul>
+                    </div>
+                  )}
+
                   <p className="text-sm text-gray-700 mt-3 p-3 bg-gray-50 rounded-lg">
                     {request.details}
                   </p>
                 </div>
-                <div className="flex gap-4 mt-4 justify-end">
-                  {user && user.role === "Donor" && (
-                    <button
-                      onClick={() => handleOfferHelp(request._id)}
-                      className="bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 text-white px-6 py-3 rounded-lg text-sm font-medium shadow-md flex items-center"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Offer Help
-                    </button>
-                  )}
+                <div className="flex gap-4 mt-4 justify-between items-center">
+                   <button
+                    onClick={() => handleReport(request._id)}
+                    className="text-gray-400 hover:text-red-500 transition-colors flex items-center text-sm"
+                    title="Report suspicious request"
+                  >
+                    <Flag className="w-4 h-4 mr-1" />
+                    Report
+                  </button>
+                  <button
+                    onClick={() => handleOfferHelp(request._id)}
+                    className="bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 text-white px-6 py-3 rounded-lg text-sm font-medium shadow-md flex items-center"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Offer Help
+                  </button>
                 </div>
               </div>
             </div>

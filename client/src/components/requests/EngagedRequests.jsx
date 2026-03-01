@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
-import { User, Mail, ClipboardList } from "lucide-react";
+import { User, Mail, ClipboardList, XCircle } from "lucide-react";
 
 const EngagedRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -36,6 +36,29 @@ const EngagedRequests = () => {
 
     fetchEngagedRequests();
   }, [token, apiUrl]);
+
+  const handleCancelHelp = async (requestId) => {
+    if (!window.confirm("Are you sure you want to cancel your offer to help? The request will return to pending status.")) return;
+
+    const toastId = toast.loading("Cancelling help offer...");
+    try {
+      const response = await fetch(`${apiUrl}/api/requests/${requestId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        setRequests((prev) => prev.filter((r) => r._id !== requestId));
+        toast.success("Help offer cancelled.", { id: toastId });
+      } else {
+        const err = await response.json();
+        toast.error(err.error || err.message || "Failed to cancel help offer.", { id: toastId });
+      }
+    } catch (error) {
+      toast.error("Network error while cancelling. Please try again.", { id: toastId });
+    }
+  };
 
   if (loading) {
     return <div className="text-center py-10">Loading engaged requests...</div>;
@@ -90,6 +113,17 @@ const EngagedRequests = () => {
                       </a>
                     </div>
                   </div>
+                  {req.status === "In Progress" && (
+                    <div className="mt-4 pt-4 border-t flex justify-end">
+                      <button
+                        onClick={() => handleCancelHelp(req._id)}
+                        className="text-red-600 hover:text-red-800 flex items-center text-sm font-medium transition"
+                      >
+                        <XCircle className="w-4 h-4 mr-1" />
+                        Cancel Help Offer
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

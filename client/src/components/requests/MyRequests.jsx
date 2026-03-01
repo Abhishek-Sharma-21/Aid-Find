@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { Link } from "react-router-dom";
-import { List, PlusCircle, User, Mail, CheckCircle } from "lucide-react";
+import { List, PlusCircle, User, Mail, CheckCircle, Trash2 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
 const MyRequests = () => {
@@ -34,6 +34,29 @@ const MyRequests = () => {
       }
     } catch (error) {
       toast.error("Network error. Please try again.", { id: toastId });
+    }
+  };
+
+  const handleDeleteRequest = async (requestId) => {
+    if (!window.confirm("Are you sure you want to delete this request? This action cannot be undone.")) return;
+
+    const toastId = toast.loading("Deleting request...");
+    try {
+      const response = await fetch(`${apiUrl}/api/requests/${requestId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        setRequests((prev) => prev.filter((r) => r._id !== requestId));
+        toast.success("Request deleted successfully.", { id: toastId });
+      } else {
+        const err = await response.json();
+        toast.error(err.error || err.message || "Failed to delete request.", { id: toastId });
+      }
+    } catch (error) {
+      toast.error("Network error while deleting. Please try again.", { id: toastId });
     }
   };
 
@@ -126,15 +149,25 @@ const MyRequests = () => {
                     <p className="text-sm text-gray-600 mt-1">Location: {request.location}</p>
                     <p className="text-sm text-gray-500 mt-2">"{request.details}"</p>
                   </div>
-                  <div className="mt-4 sm:mt-0 flex flex-col items-start sm:items-end">
+                  <div className="mt-4 sm:mt-0 flex flex-col items-start sm:items-end justify-between">
                     <span
                       className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(request.status)}`}
                     >
                       {request.status}
                     </span>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Requested on {new Date(request.createdAt).toLocaleDateString()}
-                    </p>
+                    <div className="flex flex-col items-end">
+                      <p className="text-xs text-gray-500 mt-2 mb-2">
+                        Requested on {new Date(request.createdAt).toLocaleDateString()}
+                      </p>
+                      <button
+                        onClick={() => handleDeleteRequest(request._id)}
+                        className="text-red-500 hover:text-red-700 flex items-center text-sm transition"
+                        title="Delete Request"
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
                 {request.status === "In Progress" && request.donatedBy && (

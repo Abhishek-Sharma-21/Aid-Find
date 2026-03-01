@@ -41,4 +41,8 @@ userSchema.methods.comparePassword = function (candidatePassword) {
 };
 
 const User = mongoose.model("User", userSchema);
+
+// Add index for role querying
+userSchema.index({ role: 1 });
+
 export default User; 
