@@ -17,19 +17,35 @@ app.use(
 );
 
 app.use(express.json());
-app.get("/", (req, res) => {
-  res.send("Welcome to the api");
+// Vercel Serverless Function Architecture
+// We export the app and don't rely on app.listen for Vercel
+
+// Middleware to ensure DB connection before handling requests
+app.use(async (req, res, next) => {
+  try {
+    await connectDb();
+    next();
+  } catch (err) {
+    res.status(500).json({ error: "Database connection failed" });
+  }
 });
+
+app.get("/", (req, res) => {
+  res.send("Welcome to the api (Vercel Serverless Ready)");
+});
+
 app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/requests", requestRoutes);
 
-const port = process.env.PORT || 3000;
-
-connectDb().then(() => {
-  app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+// Only listen locally, Vercel uses the exported app
+if (process.env.NODE_ENV !== "production") {
+  const port = process.env.PORT || 3000;
+  connectDb().then(() => {
+    app.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+    });
   });
-});
+}
 
 export default app;
